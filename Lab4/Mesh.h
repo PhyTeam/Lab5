@@ -3,18 +3,21 @@
 
 #include "supportClass.h"
 
+#define SAFE_DELETE(ptr) if(ptr != NULL) delete ptr
+#define SAFE_DELETE_ARRAY(ptr) if(ptr != NULL) delete[] ptr;
 
 class VertexID
 {
 public:
 	int		vertIndex;
 	int		colorIndex;
+	int		normalIndex;
 };
 
 class Face
 {
 public:
-	int		nVerts;
+	int			nVerts;
 	VertexID*	vert;
 	Vector3		facenorm;
 	Face()
@@ -36,11 +39,13 @@ public:
 class Mesh
 {
 public:
-	int		numVerts;
+	int			numVerts;
 	Point3*		pt;
 	
-	int		numFaces;
+	int			numFaces;
 	Face*		face;
+	int			numNorm;
+	Vector3*	norm;
 
 	float		slideX, slideY, slideZ;
 	float		rotateX, rotateY, rotateZ;
@@ -50,7 +55,7 @@ public:
 	Mesh()
 	{
 		numVerts	= 0;
-		pt		= NULL;
+		pt			= NULL;
 		numFaces	= 0;
 		face		= NULL;
 
@@ -68,6 +73,9 @@ public:
 		{
 			delete[] face;
 		}
+
+		SAFE_DELETE_ARRAY(norm);
+		
 		numVerts = 0;
 		numFaces = 0;
 	}
@@ -77,6 +85,7 @@ public:
 
 	void CreateTetrahedron();
 	void CreateCube(float	fSize);
+	void Draw2();
 	void CreateCuboid(float	fSizeX, float fSizeY, float	fSizeZ);
 	void CreatePlane(float size);
 	void CreateSphere(int nSlice, int nStack, float radius);

@@ -199,6 +199,21 @@ void Mesh::Draw() {
 	}
 }
 
+// Draw color with light
+void Mesh::Draw2() {
+	for (int f = 0; f < numFaces; f++) {
+		glBegin(GL_POLYGON);
+		for (int v = 0; v < face[f].nVerts; v++) {
+			int		iv = face[f].vert[v].vertIndex;
+			int		in = face[f].vert[v].normalIndex;
+			
+			glNormal3f(norm[in].x, norm[in].y, norm[in].z);
+			glVertex3f(pt[iv].x, pt[iv].y, pt[iv].z);
+		}
+		glEnd();
+	}
+}
+
 void Mesh::CreateCuboid(float	fSizeX, float fSizeY, float	fSizeZ){
 	int i;
 	numVerts = 8;

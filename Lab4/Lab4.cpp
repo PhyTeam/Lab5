@@ -10,6 +10,7 @@
 #include <math.h>
 #include "supportClass.h"
 #include "Mesh.h"
+#include "PLYReader.h"
 
 using namespace std;
 
@@ -81,6 +82,8 @@ float BlockSizeX = 0.5; // 2: body1.scaleX;  1: body2.scaleX
 float BlockSizeY = 1.2; // 1: body2.scaleY
 float BlockSizeZ = 0.52;//// 1: body2.scaleZ
 float blockSlideStep = 0.02;
+
+Mesh*	object3d;
 
 Mesh	base;
 Mesh	cyl;
@@ -614,13 +617,13 @@ void drawPlane() {
 		//plane.Draw();
 		glBegin(GL_POLYGON);
 		glTexCoord2d(0, 0);
-		glVertex3d(2, 0, 2);
+		glVertex3d(10, 0, 10);
 		glTexCoord2d(1, 0);
-		glVertex3d(-2, 0, 2);
+		glVertex3d(-10, 0, 10);
 		glTexCoord2d(1, 1);
-		glVertex3d(-2, 0, -2);
+		glVertex3d(-10, 0, -10);
 		glTexCoord2d(0, 1);
-		glVertex3d(2, 0, -2);
+		glVertex3d(10, 0, -10);
 		glEnd();
 	}
 	glDisable(GL_TEXTURE_2D);
@@ -724,7 +727,7 @@ void drawAll() {
 	GLfloat	Specular[] = { 0.5f, 0.5f, 0.5f };
 	GLfloat	Ambient[] = { 1.0f, 0.0f, 1.0f };
 
-
+	object3d->Draw2();
 
 	base.setupMaterial(Ambient, Diffuse, Ambient, 5.f);
 	drawBase();
@@ -796,6 +799,8 @@ void drawAll() {
 void myInit()
 {
 	loadTextures();
+	// Load Mesh
+	object3d = readFile();
 	float	fHalfSize = 4;
 
 	camera_dis = 8.0f;
@@ -927,9 +932,3 @@ int main(int argc, char* argv[])
 	glutMainLoop();
 	return 0;
 }
-
-
-
-
-
-
