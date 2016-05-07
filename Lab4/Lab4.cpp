@@ -729,7 +729,7 @@ void drawAll() {
 	//glDisable(GL_LIGHTING);
 	glMatrixMode(GL_MODELVIEW);
 	//glScaled(0.05, 0.05, 0.05);
-	object3d->Draw2();
+	object3d->DrawWireframe();
 }
 
 void myInit()
@@ -739,7 +739,7 @@ void myInit()
 	object3d = readFile();
 	float	fHalfSize = 4;
 
-	camera_dis = 1000.0f;
+	camera_dis = 500.0f;
 	camera_angle = 0.0f;
 	camera_height = 1.0f;
 
@@ -769,7 +769,7 @@ void initLight() {
 	glLightfv(GL_LIGHT0, GL_AMBIENT, lightAmbient);
 	glLightfv(GL_LIGHT0, GL_SPECULAR, lightSpecular);
 	glEnable(GL_COLOR_MATERIAL);
-	glColorMaterial(GL_FRONT_AND_BACK, GL_DIFFUSE);
+	glColorMaterial(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE);
 	glEnable(GL_LIGHTING);
 	glEnable(GL_LIGHT0);
 }
