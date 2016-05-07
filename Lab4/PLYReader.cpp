@@ -8,7 +8,7 @@
 #include "Mesh.h"
 #include "PLYReader.h"
 #include "supportClass.h"
-
+#include <limits>
 enum DataType
 {
 	_char,
@@ -247,7 +247,6 @@ Mesh* readFile() {
 			name_map.insert(kv);
 		}
 
-
 		mesh->numVerts = vertex->length;
 		Point3* pt = new Point3[mesh->numVerts];
 		mesh->pt = pt;
@@ -274,16 +273,21 @@ Mesh* readFile() {
 			int c = 0;
 			
 			unsigned char r, g, b, alpha;
+			unsigned char color[4];
 			fscanf(file, "%d", &c);
 			int* vertextID = new int[c];
+			float xmax = 0, ymax = 0, zmax = 0;
+			float xmin = FLT_MAX;
+		
 			for (int j = 0; j < c; j++) {
+
 				fscanf(file, "%d", &vertextID[j]);
 			}
-			fscanf(file, "%hhu %hhu %hhu %hhu", &r, &g, &b, &alpha);
+			fscanf(file, "%hhu %hhu %hhu %hhu", &color[0], &color[1], &color[2], &color[3]);
 			mesh->face[f].nVerts = c;
 			auto vid = new VertexID[c];
 			mesh->face[f].vert = vid;
-
+			_memccpy(mesh->face[f].color, &color, 0, sizeof(unsigned char) * 4);
 			//fprintf(stdout, "%d %hhu %hhu %hhu %hhu \n", c, r, g, b, alpha);
 
 			for (int i = 0; i < c; i++)

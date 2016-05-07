@@ -20,6 +20,7 @@ public:
 	int			nVerts;
 	VertexID*	vert;
 	Vector3		facenorm;
+	unsigned char color[4];
 	Face()
 	{
 		nVerts	= 0;
@@ -41,7 +42,7 @@ class Mesh
 public:
 	int			numVerts;
 	Point3*		pt;
-	
+
 	int			numFaces;
 	Face*		face;
 	int			numNorm;

@@ -726,7 +726,9 @@ void drawAll() {
 	GLfloat	Diffuse[] = { 0.5f, 0.5f, 0.1f };
 	GLfloat	Specular[] = { 0.5f, 0.5f, 0.5f };
 	GLfloat	Ambient[] = { 1.0f, 0.0f, 1.0f };
-
+	//glDisable(GL_LIGHTING);
+	glMatrixMode(GL_MODELVIEW);
+	//glScaled(0.05, 0.05, 0.05);
 	object3d->Draw2();
 }
 
@@ -761,12 +763,13 @@ void initLight() {
 	GLfloat	lightDiffuse[] = { 0.5f, 0.5f, 0.5f };
 	GLfloat	lightSpecular[] = { 1.0f, 1.0f, 1.0f };
 	GLfloat	lightAmbient[] = { 0.2f, 0.2f, 0.2f, .7f };
-	GLfloat 	light_position1[] = { 6.0f, 6.0f, 6.0f, 0.0f };
+	GLfloat 	light_position1[] = { 60.0f, 60.0f, 60.0f, 0.0f };
 	glLightfv(GL_LIGHT0, GL_POSITION, light_position1);
 	glLightfv(GL_LIGHT0, GL_DIFFUSE, lightDiffuse);
 	glLightfv(GL_LIGHT0, GL_AMBIENT, lightAmbient);
 	glLightfv(GL_LIGHT0, GL_SPECULAR, lightSpecular);
-
+	glEnable(GL_COLOR_MATERIAL);
+	glColorMaterial(GL_FRONT_AND_BACK, GL_DIFFUSE);
 	glEnable(GL_LIGHTING);
 	glEnable(GL_LIGHT0);
 }

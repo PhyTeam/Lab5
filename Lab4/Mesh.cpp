@@ -189,6 +189,7 @@ void Mesh::DrawColor()
 // Draw color with light
 void Mesh::Draw() {
 	for (int f = 0; f < numFaces; f++) {
+		
 		glBegin(GL_POLYGON);
 		for (int v = 0; v < face[f].nVerts; v++) {
 			int		iv = face[f].vert[v].vertIndex;
@@ -202,6 +203,8 @@ void Mesh::Draw() {
 // Draw color with light
 void Mesh::Draw2() {
 	for (int f = 0; f < numFaces; f++) {
+		
+		glColor4ubv(face[f].color);
 		glBegin(GL_POLYGON);
 		for (int v = 0; v < face[f].nVerts; v++) {
 			int		iv = face[f].vert[v].vertIndex;
