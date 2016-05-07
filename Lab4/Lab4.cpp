@@ -666,7 +666,7 @@ void myDisplay() {
 		glMatrixMode(GL_PROJECTION);
 		//glFrustum()
 		//glFrustum(-2, 2, -2, 2, 1, 100);
-		gluPerspective(45.0f, (float)(width) / height, 1.f, 1000.f);
+		gluPerspective(45.0f, (float)(width) / height, 1.f, 10000.f);
 		gluLookAt(eyex, eyey, eyez, 0, 0, 0, 0, 1, 0);
 		glMatrixMode(GL_MODELVIEW);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -728,72 +728,6 @@ void drawAll() {
 	GLfloat	Ambient[] = { 1.0f, 0.0f, 1.0f };
 
 	object3d->Draw2();
-
-	base.setupMaterial(Ambient, Diffuse, Ambient, 5.f);
-	drawBase();
-
-	Ambient[0] = 0.7f;
-	Ambient[1] = 0.2f;
-	Ambient[2] = 0.2f;
-	base.setupMaterial(Ambient, Diffuse, Ambient, 5.f);
-	drawPlane();
-
-	//Cylinder
-	Ambient[0] = 0.7f;
-	Ambient[1] = 0.2f;
-	Ambient[2] = 0.2f;
-	base.setupMaterial(Ambient, Diffuse, Ambient, 5.f);
-	drawCyl();
-
-	//Parts of body
-	Ambient[0] = 0.0f;
-	Ambient[1] = 0.8f;
-	Ambient[2] = 0.1f;
-	body1.setupMaterial(Ambient, Diffuse, Ambient, 5.f);
-	drawBody1();
-	drawBody2();
-	drawBody3();
-	drawBody4();
-
-	//Bolt
-	Ambient[0] = 0.8f;
-	Ambient[1] = 0.2f;
-	Ambient[2] = 0.0f;
-	bolt1.setupMaterial(Ambient, Diffuse, Ambient, 5.f);
-	drawBolt1();
-
-	Ambient[0] = 0.9f;
-	Ambient[1] = 0.5f;
-	Ambient[2] = 0.5f;
-	bolt2.setupMaterial(Ambient, Diffuse, Ambient, 5.f);
-	drawBolt2();
-
-	Ambient[0] = 0.5f;
-	Ambient[1] = 0.2f;
-	Ambient[2] = 0.2f;
-	bolt3.setupMaterial(Ambient, Diffuse, Ambient, 5.f);
-	drawBolt3();
-
-	//Rotation Arm
-	Ambient[0] = 1.0f;
-	Ambient[1] = 0.2f;
-	Ambient[2] = 0.2f;
-	roArm.setupMaterial(Ambient, Diffuse, Ambient, 5.f);
-	drawRoArm();
-
-	//Connecting Arm
-	Ambient[0] = 0.8f;
-	Ambient[1] = 0.8f;
-	Ambient[2] = 0.2f;
-	connectArm.setupMaterial(Ambient, Diffuse, Ambient, 5.f);
-	drawConnectArm();
-
-	//Block
-	Ambient[0] = 0.9f;
-	Ambient[1] = 0.0f;
-	Ambient[2] = 0.9f;
-	block.setupMaterial(Ambient, Diffuse, Ambient, 5.f);
-	drawBlock();
 }
 
 void myInit()
@@ -803,7 +737,7 @@ void myInit()
 	object3d = readFile();
 	float	fHalfSize = 4;
 
-	camera_dis = 8.0f;
+	camera_dis = 1000.0f;
 	camera_angle = 0.0f;
 	camera_height = 1.0f;
 

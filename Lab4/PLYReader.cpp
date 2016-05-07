@@ -139,6 +139,7 @@ Mesh* readFile() {
 	static const char filename[] = "liver_01.ply";
 	static const char end_header[] = "end_header\n";
 	FILE *file = fopen(filename, "r");
+
 	if (file != NULL)
 	{
 		Element* current_editing = vertex;
@@ -234,7 +235,6 @@ Mesh* readFile() {
 				break;
 			}
 		}
-
 		// Now read line by line
 		// Vertex reading
 		std::vector<std::string> ls_format;
@@ -247,46 +247,50 @@ Mesh* readFile() {
 			name_map.insert(kv);
 		}
 
-		
+
 		mesh->numVerts = vertex->length;
 		Point3* pt = new Point3[mesh->numVerts];
 		mesh->pt = pt;
 		mesh->numNorm = vertex->length;
 		Vector3* norm = new Vector3[mesh->numNorm];
 		mesh->norm = norm;
+
 		for (int i = 0; i < vertex->length; i++)
 		{
 			// Reading vertext
 			float x, y, z, nx, ny, nz;
 			fscanf(file, "%f %f %f %f %f %f", &x, &y, &z, &nx, &ny, &nz);
-			pt[0].set(x, y, z);
-			norm[0].set(nx, ny, nz);
+			pt[i].set(x, y, z);
+			norm[i].set(nx, ny, nz);
+
+			//fprintf(stdout, "%f %f %f %f %f %f\n", x, y, z, nx, ny, nz);
 		}
 		mesh->numFaces = face->length;
 		mesh->face = new Face[mesh->numFaces];
 
 		// Reading face
-		for (int f = 0; f < face->length - 10000; f++) {
-		//	printf("%d\n", f);
+		for (int f = 0; f < face->length; f++) {
+			//	printf("%d\n", f);
 			int c = 0;
-			int* vertextID = new int[c];
-			unsigned char r, g, b, a;
-			fscanf(file, "%d", &c);
 			
+			unsigned char r, g, b, alpha;
+			fscanf(file, "%d", &c);
+			int* vertextID = new int[c];
 			for (int j = 0; j < c; j++) {
 				fscanf(file, "%d", &vertextID[j]);
 			}
-			fscanf(file, "%hhu %hhu %hhu %huu", &r, &g, &b, &a);
+			fscanf(file, "%hhu %hhu %hhu %hhu", &r, &g, &b, &alpha);
 			mesh->face[f].nVerts = c;
 			auto vid = new VertexID[c];
 			mesh->face[f].vert = vid;
+
+			//fprintf(stdout, "%d %hhu %hhu %hhu %hhu \n", c, r, g, b, alpha);
 
 			for (int i = 0; i < c; i++)
 			{
 				vid[i].vertIndex = vertextID[i];
 				vid[i].normalIndex = vertextID[i];
 			}
-
 		}
 
 		fclose(file);
@@ -295,5 +299,7 @@ Mesh* readFile() {
 	{
 		perror(filename); /* why didn't the file open? */
 	}
+	//delete vertex;
+	//delete face;
 	return mesh;
 }
