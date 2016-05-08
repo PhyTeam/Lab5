@@ -10,8 +10,6 @@
 #include "supportClass.h"
 #include "Mesh.h"
 #include "PLYReader.h"
-#include <glm/glm.hpp>
-#include <glm/gtc/matrix_transform.hpp>
 
 using namespace std;
 
@@ -157,11 +155,11 @@ void mouse(int button, int state, int x, int y)
 		}
 		break;
 	case 3:
-		cout << "Wheel" << endl;
+	case 4:
 		if (state == GLUT_DOWN) {
-			glMatrixMode(GL_MODELVIEW);
+		glMatrixMode(GL_MODELVIEW);
 			glPushMatrix();
-			glLoadIdentity();
+		glLoadIdentity();
 			glScalef(zoomScale, zoomScale, zoomScale);
 			glMultMatrixf(matrix);
 			glGetFloatv(GL_MODELVIEW_MATRIX, (GLfloat*)matrix);
@@ -171,7 +169,7 @@ void mouse(int button, int state, int x, int y)
 	}
 
 	glutPostRedisplay();
-}
+	}
 
 void mouseMotion(int x, int y)
 {
@@ -217,11 +215,11 @@ void mouseMotion(int x, int y)
 		previousY = y;
 		glutPostRedisplay();
 	}
-}
+	}
 void myDisplay() {
 	glMatrixMode(GL_PROJECTION);
 	glLoadIdentity();
-
+	
 	glMatrixMode(GL_MODELVIEW);
 	glLoadIdentity();
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -233,8 +231,8 @@ void myDisplay() {
 	glViewport(0, 0, screenWidth, screenHeight);
 
 	glMultMatrixf(matrix);
-	//drawAll();
-	glutSolidTeapot(200.0);
+	drawAll();
+	//glutSolidTeapot(200.0);
 	glFlush();
 	glutSwapBuffers();
 }
@@ -248,7 +246,8 @@ void drawAll() {
 	//glDisable(GL_LIGHTING);
 	glMatrixMode(GL_MODELVIEW);
 	//glScaled(0.05, 0.05, 0.05);
-	object3d->Draw2();
+	glTranslatef(object3d->origin[0], object3d->origin[1], object3d->origin[2]);
+	object3d->DrawWireframe();
 }
 
 void myInit()
@@ -314,7 +313,6 @@ int main(int argc, char* argv[])
 	glutMouseFunc(mouse);
 	glutMotionFunc(mouseMotion);
 	glutDisplayFunc(myDisplay);
-
 	glutMainLoop();
 	return 0;
 }

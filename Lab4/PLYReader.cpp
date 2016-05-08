@@ -76,10 +76,11 @@ struct Property {
 	DataType	lst_type1;
 	DataType	lst_type2;
 };
+#define MAX_ELEMENT_NAME 8
 
 struct Element
 {
-	char		name[8];
+	char		name[MAX_ELEMENT_NAME];
 	int			length;
 	std::vector<Property> property_list;
 };
@@ -125,6 +126,113 @@ union MyUnion
 
 };
 typedef std::vector<MyUnion> VData;
+#define MAX_NUM_ELEMENTS 10
+#define MAX_FORMAT_NAME 10
+#define MAX_FORMAT_VERSION 10
+
+struct Ply_format {
+	char format[MAX_FORMAT_NAME];
+	char version[MAX_FORMAT_VERSION];
+};
+
+/*
+ *	Read header of ply file
+ *	Return elems a pointer to array of nelems
+ */
+void read_header(FILE* file, Element** elems, int* nelems, Ply_format* format) {
+
+	Element* ret = new Element[MAX_NUM_ELEMENTS];
+	*nelems = 0;
+	if (file != NULL)
+	{
+		Element* current_editing = NULL;
+		const int MAX_BUFF_LINE_HEADER = 128;
+		while (1) {
+			char lineHeader[MAX_BUFF_LINE_HEADER];
+			fscanf(file, "%s", lineHeader);
+
+			if (strcmp(lineHeader, "comment") == 0) {
+				//Skip this line
+				fscanf(file, "%*[^\n]\n", NULL);
+			}
+
+			if (strcmp(lineHeader, "format") == 0) {
+				// Reading format
+				fscanf(file, "%s %s", format->format, format->version);
+			}
+
+			if (strcmp(lineHeader, "element") == 0) {
+				char element_type[MAX_ELEMENT_NAME];
+				int  len = 0;
+				fscanf(file, "%s %d", element_type, &len);
+				// Create new element
+				Element* new_elem = new Element();
+				strcpy(new_elem->name, element_type);
+				new_elem->length = len;
+				elems[*nelems++] = new_elem;
+				current_editing = new_elem;
+				fprintf(stdout, "element %s %d\n", element_type, len);
+			}
+
+			if (strcmp(lineHeader, "property") == 0) {
+				char data_type[12];
+				char property_name[12];
+				fscanf(file, "%s %s", data_type, property_name);
+				// Create and update element property
+				Property pt;
+				Property* p = &pt;
+				strcpy(p->name, property_name);
+				if (strcmp(data_type, "char") == 0)
+					p->data_type = DataType::_char;
+
+				if (strcmp(data_type, "uchar") == 0)
+					p->data_type = DataType::_uchar;
+
+				if (strcmp(data_type, "short") == 0)
+					p->data_type = DataType::_short;
+
+				if (strcmp(data_type, "ushort") == 0)
+					p->data_type = DataType::_ushort;
+
+				if (strcmp(data_type, "int") == 0)
+					p->data_type = DataType::_int;
+
+				if (strcmp(data_type, "uint") == 0)
+					p->data_type = DataType::_uint;
+
+				if (strcmp(data_type, "float") == 0)
+					p->data_type = DataType::_float;
+
+				if (strcmp(data_type, "double") == 0)
+					p->data_type = DataType::_double;
+				if (strcmp(data_type, "list") == 0) {
+					p->data_type = DataType::_list;
+					char type1[8];
+					strcpy(type1, property_name);
+					char type2[8];
+					char indices[16];
+					fscanf(file, "%s %s", type2, indices);
+					DataType t1 = str2type(type1);
+					DataType t2 = str2type(type2);
+					p->lst_type1 = t1;
+					p->lst_type2 = t2;
+				}
+				// Adding to element
+				current_editing->property_list.push_back(pt);
+			}
+
+			if (strcmp(lineHeader, "end_header") == 0) {
+				break;
+			}
+		}
+	}
+	else
+	{
+		*elems = NULL;
+		*nelems = 0;
+		fprintf(stderr, "error: can not read this file.\n");
+	}
+}
 
 
 Mesh* readFile() {
@@ -254,19 +362,46 @@ Mesh* readFile() {
 		Vector3* norm = new Vector3[mesh->numNorm];
 		mesh->norm = norm;
 
+		float minx, miny, minz;
+		float maxx, maxy, maxz;
+		minx = miny = minz = +1e20;
+		maxx = maxy = maxz = -1e20;
+
 		for (int i = 0; i < vertex->length; i++)
 		{
 			// Reading vertext
 			float x, y, z, nx, ny, nz;
 			fscanf(file, "%f %f %f %f %f %f", &x, &y, &z, &nx, &ny, &nz);
 			pt[i].set(x, y, z);
+
+			if (minx > x)
+				minx = x;
+			if (miny > y)
+				miny = y;
+			if (minz > z)
+				minz = z;
+
+			if (maxx < x)
+				maxx = x;
+			if (maxy < y)
+				maxy = y;
+			if (maxz < z)
+				maxz = z;
+
 			norm[i].set(nx, ny, nz);
 
+			//f
 			//fprintf(stdout, "%f %f %f %f %f %f\n", x, y, z, nx, ny, nz);
 		}
 		mesh->numFaces = face->length;
 		mesh->face = new Face[mesh->numFaces];
-
+		mesh->vMin[0] = minx;
+		mesh->vMin[1] = miny;
+		mesh->vMin[2] = minz;
+		mesh->vMax[0] = maxx;
+		mesh->vMax[1] = maxy;
+		mesh->vMax[2] = maxz;
+		mesh->cal_origin();
 		// Reading face
 		for (int f = 0; f < face->length; f++) {
 			//	printf("%d\n", f);
