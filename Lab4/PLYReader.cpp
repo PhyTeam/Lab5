@@ -1,4 +1,6 @@
 
+
+
 #include"stdafx.h"
 #include <stdio.h>
 #include <iostream>
@@ -149,8 +151,7 @@ void read_header(FILE* file, Element** elems, int* nelems, Ply_format* format) {
 		const int MAX_BUFF_LINE_HEADER = 128;
 		while (1) {
 			char lineHeader[MAX_BUFF_LINE_HEADER];
-			fscanf(file, "%s", lineHeader);
-
+			fscanf_s(file, "%s", lineHeader);
 			if (strcmp(lineHeader, "comment") == 0) {
 				//Skip this line
 				fscanf(file, "%*[^\n]\n", NULL);
