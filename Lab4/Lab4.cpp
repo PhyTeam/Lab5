@@ -2,7 +2,6 @@
 //
 
 #include "stdafx.h"
-
 #include <iostream>
 #include <windows.h>
 #include <GL/gl.h>
@@ -11,29 +10,30 @@
 #include "supportClass.h"
 #include "Mesh.h"
 #include "PLYReader.h"
+#include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
 
 using namespace std;
 
 #define PI		3.1415926
 
-int width, height;
+float matrix[16];
+float axis[3];
+float angle = 0.0;
+// Previous mouse cursor position
+int previousX = 0;
+int previousY = 0;
+// Says if the mouse left button is currently pressed
+bool isLeftButtonPressed = false;
+
+float zoomScale = 0.95f;
 
 int		screenWidth = 600;
 int		screenHeight = 600;
-
 bool	bWireFrame = false;
-
 Mesh*	object3d;
-
-/* Camera variables */
-float camera_angle;
-float camera_height;
-float camera_dis;
-float camera_X, camera_Y, camera_Z;
-float lookAt_X, lookAt_Y, lookAt_Z;
-
-bool	b4View = false;
-
+float cameraX = 0, cameraY = 0, cameraZ = 1000;
+bool b4View = false;
 void initLight();
 void initLight2();
 void drawAll();
@@ -60,18 +60,6 @@ void drawAxis()
 	glPopMatrix();
 }
 
-float Modify_Angel(float angel) {
-	if (angel >= 180 && angel <= 270) {
-		return angel - 180;
-	}
-	else if (angel > 270 && angel <= 360) {
-		return angel - 270;
-	}
-	else if (angel > 90) {
-		return angel - 90;
-	}
-	else return angel;
-}
 
 void myKeyboard(unsigned char key, int x, int y)
 {
@@ -112,11 +100,24 @@ void myKeyboard(unsigned char key, int x, int y)
 		break;
 	case '-': 
 	case '_':
-		camera_dis -= 0.1f;
+		glMatrixMode(GL_MODELVIEW);
+		glPushMatrix();
+		glLoadIdentity();
+		glScalef(1.f / zoomScale, 1.f / zoomScale, 1.f / zoomScale);
+		glMultMatrixf(matrix);
+		glGetFloatv(GL_MODELVIEW_MATRIX, (GLfloat*)matrix);
+		glPopMatrix();
+		break;
 		break;
 	case '+': 
 	case '=':
-		camera_dis += 0.1f;
+		glMatrixMode(GL_MODELVIEW);
+		glPushMatrix();
+		glLoadIdentity();
+		glScalef(zoomScale, zoomScale, zoomScale);
+		glMultMatrixf(matrix);
+		glGetFloatv(GL_MODELVIEW_MATRIX, (GLfloat*)matrix);
+		glPopMatrix();
 		break;
 	
 	}
@@ -127,16 +128,12 @@ void myKeyboard(unsigned char key, int x, int y)
 void keyboardSpecialDown(int k, int x, int y) {
 	switch (k) {
 	case 100:
-		camera_angle -= 0.1f;
 		break;
 	case 102:
-		camera_angle += 0.1f;
 		break;
 	case GLUT_KEY_UP:
-		camera_height += 0.1f;
 		break;
 	case GLUT_KEY_DOWN:
-		camera_height -= 0.1f;
 		break;
 	default:
 		break;
@@ -145,68 +142,99 @@ void keyboardSpecialDown(int k, int x, int y) {
 	//printf("PRESSED %d\n", k);
 }
 
+void mouse(int button, int state, int x, int y)
+{
+	switch (button) {
+	case GLUT_LEFT_BUTTON:
+		if (state == GLUT_DOWN) {
+			isLeftButtonPressed = true;
+			previousX = x;
+			previousY = y;
+			angle = 0.0;
+		}
+		else if (state == GLUT_UP) {
+			isLeftButtonPressed = false;
+		}
+		break;
+	case 3:
+		cout << "Wheel" << endl;
+		if (state == GLUT_DOWN) {
+			glMatrixMode(GL_MODELVIEW);
+			glPushMatrix();
+			glLoadIdentity();
+			glScalef(zoomScale, zoomScale, zoomScale);
+			glMultMatrixf(matrix);
+			glGetFloatv(GL_MODELVIEW_MATRIX, (GLfloat*)matrix);
+			glPopMatrix();
+		}
+		break;
+	}
 
+	glutPostRedisplay();
+}
+
+void mouseMotion(int x, int y)
+{
+	if (isLeftButtonPressed) {
+		// Project previous coords on to the sphere.
+		float x1 = (2 * previousX - screenWidth) / (float)screenWidth;
+		float y1 = (screenHeight - 2 * previousY) / (float)screenHeight;
+		float z1 = 1 - x1*x1 - y1*y1;
+
+		// Be careful not to take the square root of a negative number.
+		if (z1 < 0) z1 = 0; else z1 = sqrt(z1);
+
+		// Project current coords on to the sphere.
+		float x2 = (2 * x - screenWidth) / (float)screenWidth;
+		float y2 = (screenHeight - 2 * y) / (float)screenHeight;
+		float z2 = 1 - x2*x2 - y2*y2;
+
+		if (z2 < 0) z2 = 0; else z2 = sqrt(z2);
+
+		// Take the cross product to find the axis of rotation.
+		axis[0] = y1*z2 - y2*z1;
+		axis[1] = z1*x2 - z2*x1;
+		axis[2] = x1*y2 - x2*y1;
+
+		// Angle is computed from the magnitude of the cross product.
+		float norm = sqrt(axis[0] * axis[0] + axis[1] * axis[1] + axis[2] * axis[2]);
+		angle = asin(fmin(1.0f, norm)) * 180 / 3.14159;
+
+		// Normalize the axis.
+		axis[0] /= norm;
+		axis[1] /= norm;
+		axis[2] /= norm;
+
+		glMatrixMode(GL_MODELVIEW);
+		glPushMatrix();
+		glLoadIdentity();
+		glRotatef(angle * 1.5f, axis[0], axis[1], axis[2]);
+		glMultMatrixf(matrix);
+		glGetFloatv(GL_MODELVIEW_MATRIX, (GLfloat*)matrix);
+		glPopMatrix();
+
+		previousX = x;
+		previousY = y;
+		glutPostRedisplay();
+	}
+}
 void myDisplay() {
 	glMatrixMode(GL_PROJECTION);
 	glLoadIdentity();
-	float eyex = camera_dis * cos(camera_angle);
-	float eyez = camera_dis * sin(camera_angle);
-	float eyey = camera_height;
-	// Setup camera
-	if (!b4View) {
-		glMatrixMode(GL_MODELVIEW);
-		glLoadIdentity();
-		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-		glMatrixMode(GL_PROJECTION);
-		gluPerspective(45.0f, (float)(width) / height, 1.f, 10000.f);
-		gluLookAt(eyex, eyey, eyez, 0, 0, 0, 0, 1, 0);
-		glMatrixMode(GL_MODELVIEW);
-		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-		glViewport(0, 0, screenWidth, screenHeight);
-		drawAll();
-	}
-	else {
-		glMatrixMode(GL_PROJECTION);
-		glLoadIdentity();
-		gluPerspective(60.0, screenWidth / screenHeight, 1, 100);
 
-		glMatrixMode(GL_MODELVIEW);
-		glLoadIdentity();
-		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-		//// View goc duoi ben trai
-		glViewport(0, 0, screenWidth / 2, screenHeight / 2);
+	glMatrixMode(GL_MODELVIEW);
+	glLoadIdentity();
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	glMatrixMode(GL_PROJECTION);
+	gluPerspective(45.0f, (float)(screenWidth) / screenHeight, 1.0f, 10000.0f);
+	gluLookAt(cameraX, cameraY, cameraZ, 0, 0, 0, 0, 1, 0);
+	glMatrixMode(GL_MODELVIEW);
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	glViewport(0, 0, screenWidth, screenHeight);
 
-		glPushMatrix();
-		gluLookAt(0, 5, 0, 0, 0, 0, 0, 0, -1);
-		drawAll();
-		glPopMatrix();
-
-		//// View goc duoi ben phai
-		glViewport(screenWidth / 2, 0, screenWidth / 2, screenHeight / 2);
-
-		glPushMatrix();
-		gluLookAt(eyex, eyey, eyez, 0, 1, 0, 0, 1, 0);
-		drawAll();
-		glPopMatrix();
-		//// View goc tren ben trai
-
-		glViewport(0, screenHeight / 2, screenWidth / 2, screenHeight / 2);
-
-		glPushMatrix();
-		gluLookAt(0, 0, 6, 0, 1, 0, 0, 1, 0);
-		drawAll();
-		glPopMatrix();
-		// View goc tren ben phai
-
-		glViewport(screenWidth / 2, screenHeight / 2, screenWidth / 2, screenHeight / 2);
-
-		glPopMatrix();
-		gluLookAt(6, 0, 0, 0, 1, 0, 0, 1, 0);
-		drawAll();
-		glPopMatrix();
-	}
-	
-
+	glMultMatrixf(matrix);
+	//drawAll();
+	glutSolidTeapot(200.0);
 	glFlush();
 	glutSwapBuffers();
 }
@@ -220,33 +248,26 @@ void drawAll() {
 	//glDisable(GL_LIGHTING);
 	glMatrixMode(GL_MODELVIEW);
 	//glScaled(0.05, 0.05, 0.05);
-	object3d->DrawWireframe();
+	object3d->Draw2();
 }
 
 void myInit()
 {
+	for (int i = 0; i < 4; i++)
+		for (int j = 0; j < 4; j++)
+			if (i == j) matrix[i * 4 + j] = 1.0; else matrix[i * 4 + j] = 0.0;
+
 	// Load Mesh
 	object3d = readFile();
 	float	fHalfSize = 4;
 
-	camera_dis = 500.0f;
-	camera_angle = 0.0f;
-	camera_height = 1.0f;
-
 	glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
-	glColor3f(0.0f, 0.0f, 0.0f);
 
 	glFrontFace(GL_CCW);
 	glEnable(GL_DEPTH_TEST);
 	//glEnable(GL_CULL_FACE);
 	initLight();
 	initLight2();
-
-	glMatrixMode(GL_PROJECTION);
-	glLoadIdentity();
-	glOrtho(-fHalfSize, fHalfSize, -fHalfSize, fHalfSize, -1000, 1000);
-	
-	glMatrixMode(GL_MODELVIEW);
 }
 
 void initLight() {
@@ -283,7 +304,6 @@ int main(int argc, char* argv[])
 	glutInit(&argc, (char**)argv); //initialize the tool kit
 	glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGB);//set the display mode
 	glutInitWindowSize(screenWidth, screenHeight); //set window size
-	width = 600; height = 800;
 	glutInitWindowPosition(100, 100); // set window position on screen
 	glutCreateWindow("Lab3-2015-2016"); // open the screen window
 
@@ -291,6 +311,8 @@ int main(int argc, char* argv[])
 
 	glutKeyboardFunc(myKeyboard);
 	glutSpecialFunc(keyboardSpecialDown);
+	glutMouseFunc(mouse);
+	glutMotionFunc(mouseMotion);
 	glutDisplayFunc(myDisplay);
 
 	glutMainLoop();
