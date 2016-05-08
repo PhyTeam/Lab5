@@ -5,6 +5,15 @@
 using namespace std;
 #define PI			3.1415926
 
+void Mesh::cal_origin()
+{
+
+	for (size_t i = 0; i < 3; i++)
+	{
+		origin[i] = - (vMax[i] + vMin[i]) * 0.5f;
+	}
+}
+
 void Mesh::DrawWireframe()
 {
 	glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);

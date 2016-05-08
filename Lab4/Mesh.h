@@ -40,6 +40,13 @@ public:
 class Mesh
 {
 public:
+	float vMax[3];
+	float vMin[3];
+
+	float origin[3];
+
+	void cal_origin();
+	
 	int			numVerts;
 	Point3*		pt;
 

@@ -163,6 +163,7 @@ void myDisplay() {
 		glMatrixMode(GL_MODELVIEW);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 		glViewport(0, 0, screenWidth, screenHeight);
+		
 		drawAll();
 	}
 	else {
@@ -220,6 +221,7 @@ void drawAll() {
 	//glDisable(GL_LIGHTING);
 	glMatrixMode(GL_MODELVIEW);
 	//glScaled(0.05, 0.05, 0.05);
+	glTranslatef(object3d->origin[0], object3d->origin[1], object3d->origin[2]);
 	object3d->DrawWireframe();
 }
 
